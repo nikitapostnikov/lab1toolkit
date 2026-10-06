@@ -1,6 +1,8 @@
-from constants import OPR,NUM,STRL,NUML
+from .constants import OPR,NUM,STRL,NUML
+from .errors import errorlist
 def calculaTORR(base:str):
-    stack,stackd,compiled,tempc,errstream,check=list(),list(),list(),'','',list[list()]
+    stack,stackd,compiled,tempc,errstream=list(),list(),list(),'',''
+    check=base.split()
     base+='#'
     def isnumber(a):
         try:
@@ -30,13 +32,13 @@ def calculaTORR(base:str):
         if c=='/': return str(float(a)/float(b))
         if c=='-': return str(float(a)-float(b))
         if c=='*': return str(float(a)*float(b))
-    check=base.split(' ')
     if base.count(' ')==len(base)-1:
-        errstream+='Ошибка! Пустая строка. '
-    else:
-        for i in range(len(check)-1):
-            if (contains(check[i][len(check[i])-1],NUM) or check[i][len(check[i])-1]=='.') and (contains(check[i+1][0],NUM) or check[i][0]=='.') :
-                errstream+='Ошибка! Пропущен операнд.'      
+        errstream+=errorlist[0]
+    if contains(' ',base):
+        if len(check)>=2:
+            for i in range(len(check)-1):
+                if isnumber(check[i]) and isnumber(check[i+1]):
+                    errstream+=errorlist[7]
     base=base.replace(' ','')       
     for i in range(len(base)+10):
         compiled.append(' ') 
@@ -44,9 +46,7 @@ def calculaTORR(base:str):
     stackd.append(0)
     for i in range(len(base)):
         if (contains(base[i],NUM)==False and contains(base[i],OPR)==False and base[i]!='.') and (i<(len(base)-1)):
-            errstream+='Ошибка! Неизвестный символ '+base[i]+'. '
-        elif base[i]=='0' and base[i-1]=='/':
-            errstream+='Ошибка! Д.Е.Л.Е.Н.И.Е Н.А Н.О.Л.Ь!!!!!! '    
+            errstream+=errorlist[1]  
         if contains(base[i],NUM) or base[i]=='.':
             if i==(len(base)-2):
                 tempc+=base[i]
@@ -59,7 +59,7 @@ def calculaTORR(base:str):
                 tempc=''
         if contains(base[i],OPR):
             if (contains(base[i],OPR) and (contains(base[i-1],OPR))) and not((contains(base[i],OPR[:-2]) and contains(base[i-1],OPR[:-2]))or(contains(base[i-1],OPR[-2:]) and contains(base[i],OPR[:-2]))):
-                errstream+='Ошибка! Нарушен порядок операндов. '
+                errstream+=errorlist[3]
             else:         
                 if base[i]=='-':
                     if i==0:tempc+=base[i]
@@ -81,6 +81,14 @@ def calculaTORR(base:str):
                 compiled[minel(' ',compiled)]=stack[len(stack)-1]
                 stack=stack[:-1]
                 stackd=stackd[:-1]
+    for l in range(len(compiled)):
+        if compiled[l]=='.':compiled[l]='0'
+    for t in range(len(compiled)):
+        if isnumber(compiled[i]) and isnumber(compiled[i+1]) and contains(compiled[i+2],OPR):
+            if all(x=='0' or x=='.' for x in compiled[i+1]) and compiled[i+2]=='/':
+                errstream+=errorlist[4]
+    print(compiled)
+    i=0            
     if errstream !='': return errstream
     else:                                       
         while compiled[1]!=' ':
@@ -95,9 +103,10 @@ def calculaTORR(base:str):
                 for k in range(minel(' ',compiled)):
                     if isnumber(compiled[k]) and isnumber(compiled[k+1]) and contains(compiled[k+2],OPR): 
                         i=k           
-        if float(compiled[0])-float(int(float(compiled[0])))==0.0:return str(int(float(compiled[0])))
+        if errstream!='':return errstream
+        elif float(compiled[0])-float(int(float(compiled[0])))==0.0:return str(int(float(compiled[0])))
         else: return compiled[0]
-def converTORR(base:str):
+def converTORR(base:str,inu:str,outu:str):
     def contains(a,b):
         k=0
         for i in range(len(b)):
@@ -114,36 +123,35 @@ def converTORR(base:str):
             return True
         except ValueError:
             return False             
-    k,res,errstream,rstr=0,0.0,'',''
-    ws=base.split()
-    if len(ws)!=4 :
-        errstream+='Ошибка! Некорректный синтаксис ввода переводчика. '
-    elif isnumber(ws[0])==False or ws[2]!='->' :
-        errstream+='Ошибка! Некорректный синтаксис ввода. '    
+    k,res,errstream,rstr,ws=0,0.0,'','',['','']
+    ws[0]=base
+    ws[1]=inu
+    expect=outu
+    if isnumber(ws[0])==False :
+        errstream+=errorlist[7]   
     else:       
-        expect=ws[3]
         for l in range(len(STRL)):
             if contains(ws[1].lower(),STRL[l])==False:
                 k+=1
-            if k==3: errstream+='Ошибка! Неизвестная начальная единица измерения. '
+            if k==3: errstream+=errorlist[5]
         k=0    
         for v in range(len(STRL)):    
             if contains(expect.lower(),STRL[v])==False:
                 k+=1
-            if k==3: errstream+='Ошибка! Неизвестная конечная единица измерения. '         
+            if k==3: errstream+=errorlist[5]        
         if errstream=='':
             k=0
             for n in range(len(STRL)):
                 if (contains(ws[1].lower(),STRL[n]) and contains(expect.lower(),STRL[n]))==False:
                     k+=1
-                    if k==3:errstream+='Ошибка! Несовместимые единицы измерения. '
+                    if k==3:errstream+=errorlist[6]
                 elif errstream=='':
                     if contains(ws[1].lower(),STRL[1]) or contains(ws[1].lower(),STRL[0]):
                         res=(change(ws[1].lower())/change(expect.lower()))*float(ws[0])
                     else:
                         if ws[1].lower()=='c' or ws[1].lower()=='k':
-                            if ws[1].lower()=='k' and float(ws[0])<0:errstream+='Ошибка! Значение температуры ниже абсолютного нуля.'
-                            elif ws[1].lower()=='c' and float(ws[0])<-273.15:errstream+='Ошибка! Значение температуры ниже абсолютного нуля.'
+                            if ws[1].lower()=='k' and float(ws[0])<0:errstream+=errorlist[7]
+                            elif ws[1].lower()=='c' and float(ws[0])<-273.15:errstream+=errorlist[7]
                             else:
                                 if ws[1].lower()=='c' and expect.lower()=='k':
                                     res=float(ws[0])+273.15
@@ -159,7 +167,7 @@ def converTORR(base:str):
                                 if ws[1].lower()=='k' and expect.lower()=='k':
                                     res=float(ws[0])  
                         else:
-                            if float(ws[0])<(-459.67):errstream+='Ошибка! Значение температуры ниже абсолютного нуля.'
+                            if float(ws[0])<(-459.67):errstream+=errorlist[7]
                             else:
                                 if expect.lower()=='k':
                                     res=(float(ws[0])-32.0)*1.8+273.15
