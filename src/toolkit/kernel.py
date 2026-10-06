@@ -83,12 +83,17 @@ def calculaTORR(base:str):
                 stackd=stackd[:-1]
     for l in range(len(compiled)):
         if compiled[l]=='.':compiled[l]='0'
-    for t in range(len(compiled)):
-        if isnumber(compiled[i]) and isnumber(compiled[i+1]) and contains(compiled[i+2],OPR):
-            if all(x=='0' or x=='.' for x in compiled[i+1]) and compiled[i+2]=='/':
+    for t in range(len(compiled)-2):
+        if isnumber(compiled[t]) and isnumber(compiled[t+1]) and contains(compiled[t+2],OPR):
+            if all(x=='0' or x=='.' for x in compiled[t+1]) and compiled[t+2]=='/':
                 errstream+=errorlist[4]
+    d,f=0,0
+    for j in range(len(compiled)):
+        if contains(compiled[j],OPR): d+=1
+        if isnumber(compiled[j]):f+=1
+    if d!=(f-1):errstream+=errorlist[2]
+    i=0
     print(compiled)
-    i=0            
     if errstream !='': return errstream
     else:                                       
         while compiled[1]!=' ':
@@ -150,16 +155,16 @@ def converTORR(base:str,inu:str,outu:str):
                         res=(change(ws[1].lower())/change(expect.lower()))*float(ws[0])
                     else:
                         if ws[1].lower()=='c' or ws[1].lower()=='k':
-                            if ws[1].lower()=='k' and float(ws[0])<0:errstream+=errorlist[7]
-                            elif ws[1].lower()=='c' and float(ws[0])<-273.15:errstream+=errorlist[7]
+                            if ws[1].lower()=='k' and float(ws[0])<0:errstream+=errorlist[8]
+                            elif ws[1].lower()=='c' and float(ws[0])<-273.15:errstream+=errorlist[8]
                             else:
                                 if ws[1].lower()=='c' and expect.lower()=='k':
                                     res=float(ws[0])+273.15
 
                                 if ws[1].lower()=='k' and expect.lower()=='c':
                                     res=float(ws[0])-273.15
-                                if ws[1].lower()=='c' and expect.lower=='f':
-                                    res=(float(ws[0])*1.8)+32.0
+                                if ws[1].lower()=='c' and expect.lower()=='f':
+                                    res=float(ws[0])*1.8+32
                                 if ws[1].lower()=='k' and expect.lower()=='f':
                                     res=(float(ws[0])-273.15)*1.8+32.0
                                 if ws[1].lower()=='c' and expect.lower()=='c':
